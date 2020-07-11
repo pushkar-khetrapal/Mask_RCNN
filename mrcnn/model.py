@@ -1925,11 +1925,11 @@ class MaskRCNN():
         mrcnn_feature_maps = [P2, P3, P4, P5]
 
 
-	print('P2 ' , P2.shape)
-	print('P3 ' , P3.shape)
-	print('P4 ' , P4.shape)
-	print('P5 ' , P5.shape)
-	print('P6 ' , P6.shape)
+        print('P2 ' , P2.shape)
+        print('P3 ' , P3.shape)
+        print('P4 ' , P4.shape)
+        print('P5 ' , P5.shape)
+        print('P6 ' , P6.shape)
 
 
 
@@ -1944,8 +1944,7 @@ class MaskRCNN():
         else:
             anchors = input_anchors
 	
-	print('Anchors ', anchors.shape)
-        # RPN Model
+	      # RPN Model
         rpn = build_rpn_model(config.RPN_ANCHOR_STRIDE,
                               len(config.RPN_ANCHOR_RATIOS), config.TOP_DOWN_PYRAMID_SIZE)
         # Loop through pyramid layers
@@ -1963,9 +1962,9 @@ class MaskRCNN():
 
         rpn_class_logits, rpn_class, rpn_bbox = outputs
 
-	print('RPN_class_logits', rpn_class_logits.shape)
-	print('RPN_class', rpn_class.shape)
-	print('RPN_class_logits', rpn_bbox.shape)
+        print('RPN_class_logits', rpn_class_logits.shape)
+        print('RPN_class', rpn_class.shape)
+        print('RPN_class_logits', rpn_bbox.shape)
 
 
         # Generate proposals
@@ -1979,7 +1978,7 @@ class MaskRCNN():
             name="ROI",
             config=config)([rpn_class, rpn_bbox, anchors])
 
-	print(rpn_rois.shape)
+        print('rpn_rois', rpn_rois.shape)
 
         if mode == "training":
             # Class ID mask to mark class IDs supported by the dataset the image
@@ -2518,9 +2517,9 @@ class MaskRCNN():
 
         # Mold inputs to format expected by the neural network
         molded_images, image_metas, windows = self.mold_inputs(images)
-	print('molded_image shape ',molded_images.shape)
-	print('image meta shape ', image_metas.shape)
-	print('windows shape ', windows.shape)
+        print('molded_image shape ',molded_images.shape)
+        print('image meta shape ', image_metas.shape)
+        print('windows shape ', windows.shape)
 
         # Validate image sizes
         # All images in a batch MUST be of the same size
@@ -2531,19 +2530,29 @@ class MaskRCNN():
 
         # Anchors
         anchors = self.get_anchors(image_shape)
-	print('upper anchors shape ', anchors.shape)
+        print('upper anchors shape ', anchors.shape)
         # Duplicate across the batch dimension because Keras requires it
         # TODO: can this be optimized to avoid duplicating the anchors?
         anchors = np.broadcast_to(anchors, (self.config.BATCH_SIZE,) + anchors.shape)
 	
-	print('lower anchors shape ', anchors.shape)
+        print('lower anchors shape ', anchors.shape)
         if verbose:
             log("molded_images", molded_images)
             log("image_metas", image_metas)
             log("anchors", anchors)
         # Run object detection
-        detections, _, _, mrcnn_mask, _, _, _ =\
+        detections, mrcnn_class, mrcnn_bbox, mrcnn_mask, rpn_rois, rpn_class, rpn_bbox =\
             self.keras_model.predict([molded_images, image_metas, anchors], verbose=0)
+        # Process detections
+        results = []
+        print('---------------------------------------')
+        print('detections', detections.shape)
+        print('mrcnn_class', mrcnn_class.shape)
+        print('mrcnn_bbox', mrcnn_bbox.shape)
+        print('mrcnn_mask', mrcnn_mask.shape)
+        print('rpn_rois', rpn_rois.shape)
+        print('rpn_class', rpn_class.shape)
+        print('rpn_bbox', rpn_bbox.shape)
         # Process detections
         results = []
         for i, image in enumerate(images):
